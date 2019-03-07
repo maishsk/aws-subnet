@@ -1,38 +1,70 @@
-Role Name
-=========
+# aws-vpc
 
-A brief description of the role goes here.
+Will create a VPC in the specified AWS region. This role will also attach an Internet Gateway to the VPC.
 
-Requirements
-------------
+## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+None
 
-Role Variables
---------------
+## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The variables uses in this role are
 
-Dependencies
-------------
+| Variable Name | Required | Description | 
+|----|----|----|
+| `region`| **Yes** | The region that you will deploy into |
+| `vpc_cidr_block` | **Yes** | The CIDR block of VPC  | 
+| `vpc_name` | **Yes** | The name of the VPC | 
+| `enable_dns_support` | Optional | Enable DNS Support<br>   - Default `true` | 
+| `enable_dns_hostnames` | Optional | Enable AWS DNS support<br>   - Default `true` |
+| `vpc_multi_ok` | Optional | Create new VPC if another VPC with the same name and CIDR block exists? <br>   - Default `no` |
+| `vpc_tenancy` | Optional | Default or dedicated tenancy<br>   - Default `default` |
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+## Dependencies
 
-Example Playbook
-----------------
+None
+
+## Example Playbook
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```
+---
+- name: Create a VPC
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars/vars.yml
+  roles:
+    - aws-vpc
+```
 
-License
--------
+And `vars/vars.yml` contains
+
+```
+vpc_name: vpc_test
+vpc_cidr_block: 192.168.100.0/24
+region: us-east-2
+tags:
+ - foo: bar
+ - blah: meh
+ - ami: 3syllables
+```
+
+## Running the playbook
+
+To create the VPC
+
+`ansible-playbook main.yml -e "create=true"`
+
+To remove the VPC
+
+`ansible-playbook main.yml -e "rollback=true"`
+
+## License
 
 BSD
 
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+## Author Information
+This role was created by [Maish Saidel-Keesing](https://www.maishsk.com/), author of [The Cloud Walkabout](http://cloudwalkabout.com/).

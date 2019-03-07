@@ -1,2 +1,41 @@
 ---
-# tasks file for aws-subnet
+- name: Create a dictionary of tags 
+  set_fact:
+    tags_dict: "{{ tags_dict|default({}) |  combine(item.1) }}"
+  with_indexed_items: "{{ tags }}"
+  when: (tags is defined and create is defined)
+
+- name: Create Subnets
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ subnet_cidr }}"
+    az: "{{ subnet_az }}"
+    resource_tags:
+      "{{ tags_dict | default (omit) }}" 
+  when: create is defined
+  register: subnets_output
+
+
+# - name: Gather facts about VPC before deletion
+#   ec2_vpc_net_facts:
+#     region: "{{ region }}"
+#     filters:
+#       "tag:Name": "{{ vpc_name }}"
+#   when: rollback is defined
+#   register: vpc_facts    
+
+# - name: Remove the IGW
+#   ec2_vpc_igw:
+#     vpc_id: "{{ vpc_facts.vpcs[0].id }}"
+#     region: "{{ region }}"
+#     state: absent
+#   when: rollback is defined
+
+# - name: Remove a VPC 
+#   ec2_vpc_net:
+#     name: "{{ vpc_name }}"
+#     region: "{{ region }}"
+#     cidr_block: "{{ vpc_cidr_block }}"
+#     state: absent
+#   when: rollback is defined

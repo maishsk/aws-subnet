@@ -1,2 +1,39 @@
 ---
-# tasks file for aws-subnet
+- name: Create Subnets
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ item.subnet_cidr }}"
+    az: "{{ item.subnet_az }}"
+    map_public: "{{ item.subnet_map_public | default ('no') }}"
+    resource_tags:
+      Name: "{{ item.subnet_name }}"
+      VPCname: "{{vpc_name }}"
+  with_items: "{{ subnets }}"
+  when: create is defined
+  register: subnets_output
+
+- name: Store subnet fact for further use
+  set_fact:
+    subnets_output: "{{ subnets_output }}"
+  when: create is defined
+
+- name: Gather facts about Subnets before deletion
+  ec2_vpc_subnet_facts:
+    filters:
+      vpc-id: "{{ vpc_id }}"
+  when: rollback is defined
+  register: subnet_facts
+
+- name: Remove the Subnets
+  ec2_vpc_subnet:
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ region }}"
+    cidr: "{{ item.cidr_block }}"
+    state: absent
+  with_items: "{{ subnet_facts.subnets }}"
+  when: rollback is defined
+
+# - name: Display all variables/facts
+#   debug:
+#     var: hostvars[inventory_hostname]

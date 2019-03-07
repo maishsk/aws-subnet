@@ -1,2 +1,3 @@
----
-# defaults file for aws-subnet
+wait_timeout: 300
+wait: yes
+map_public: no

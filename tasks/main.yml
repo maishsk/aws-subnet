@@ -13,7 +13,7 @@
     map_public: "{{ item.subnet_map_public | default ('no') }}"
     resource_tags:
       Name: "{{ item.subnet_name }}"
-      VPCname: "{{vpc_name }}"
+      VPCname: "{{ vpc_name }}"
   with_items: "{{ subnets }}"
   when: create is defined
   register: subnets_output

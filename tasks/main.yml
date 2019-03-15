@@ -1,4 +1,9 @@
 ---
+- name: Set VPC ID fact
+  set_fact:
+    vpc_id: "{{ vpc_output.vpc.id }}"
+  when: create is defined
+
 - name: Create Subnets
   ec2_vpc_subnet:
     state: present
@@ -8,7 +13,7 @@
     map_public: "{{ item.subnet_map_public | default ('no') }}"
     resource_tags:
       Name: "{{ item.subnet_name }}"
-      VPCname: "{{vpc_name }}"
+      VPCname: "{{ vpc_name }}"
   with_items: "{{ subnets }}"
   when: create is defined
   register: subnets_output
@@ -17,6 +22,19 @@
   set_fact:
     subnets_output: "{{ subnets_output }}"
   when: create is defined
+
+- name: Gather facts about VPC before deletion
+  ec2_vpc_net_facts:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  when: rollback is defined
+  register: vpc_facts
+
+- name: Set VPC ID fact
+  set_fact:
+    vpc_id: "{{ vpc_facts.vpcs[0].id }}"
+  when: rollback is defined
 
 - name: Gather facts about Subnets before deletion
   ec2_vpc_subnet_facts:

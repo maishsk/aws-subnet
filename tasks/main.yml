@@ -23,6 +23,20 @@
     subnets_output: "{{ subnets_output }}"
   when: create is defined
 
+- name: Gather info about public Subnets for further use (NATGW creation)
+  ec2_vpc_subnet_facts:
+    filters:
+      vpc-id: "{{ vpc_id }}"
+      "tag:Name": "*Public*"
+  register: public_subnets
+  when: create is defined
+
+- name: Store subnet facts for further use (NATGW creation)
+  set_fact:
+    public_subnet_ids: "{{ public_subnets | json_query ('subnets[*].subnet_id') }}"
+  when: create is defined
+
+# Rollback sequence
 - name: Gather facts about VPC before deletion
   ec2_vpc_net_facts:
     region: "{{ region }}"
@@ -45,8 +59,8 @@
 
 - name: Remove the Subnets
   ec2_vpc_subnet:
-    vpc_id: "{{ vpc_id }}"
     region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
     cidr: "{{ item.cidr_block }}"
     state: absent
   with_items: "{{ subnet_facts.subnets }}"

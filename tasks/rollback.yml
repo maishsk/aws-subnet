@@ -1,0 +1,29 @@
+---
+- name: Gather facts about VPC before deletion
+  ec2_vpc_net_facts:
+    region: "{{ region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: vpc_facts
+
+- name: Set VPC ID fact
+  set_fact:
+    vpc_id: "{{ vpc_facts.vpcs[0].id }}"
+
+- name: Gather facts about Subnets before deletion
+  ec2_vpc_subnet_facts:
+    filters:
+      vpc-id: "{{ vpc_id }}"
+  register: subnet_facts
+
+- name: Remove the Subnets
+  ec2_vpc_subnet:
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ item.cidr_block }}"
+    state: absent
+  with_items: "{{ subnet_facts.subnets }}"
+
+# - name: Display all variables/facts
+#   debug:
+#     var: hostvars[inventory_hostname]

@@ -4,7 +4,9 @@ Will create a subnet(s) in an existing VPC
 
 ## Requirements
 
-An existing VPC.
+- AWS credentials and the correct permissions to create the resources
+- An existing VPC with a tagged Name
+- List of subnets and their location is defined in teh `subnets` variable (see example below)
 
 ## Role Variables
 
@@ -13,10 +15,8 @@ The variables uses in this role are
 | Variable Name | Required | Description | 
 |----|----|----|
 | `region`| **Yes** | The region that you will deploy into |
-| `vpc_id` | **Yes** | The Id of the VPC | 
-| `subnet_cidr_block` | **Yes** | The CIDR block of the Subnet  | 
+| `vpc_name` | **Yes** | Used for identification of VPC |
 | `subnets` | **Yes** | List of subnets for deployment
-| `vpc_name` | Optional | Used for tagging purposes |
 | `wait_timeout` | Optional | Period of time to wait for timeout <br> - Default `300` |
 | `wait` | Optional | Wait for subnet to become available <br> - Default `yes` |
 | `map_public` | Optional | Assign public IP addresses by default to instances <br> - Default `no` |
@@ -27,8 +27,24 @@ None
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+### Download dependencies
 
+#### Create requirements file
+
+Create a `requirements.yml` file with the following contents
+```
+- src: https://github.com/maishsk/aws-subnet
+  version: master
+```
+
+#### Download dependencies
+Run the following command:
+```
+ansible-galaxy install -r requirements.yml --force -p .
+```
+
+### Create playbook
+Create a `main.yaml` file with the following contents:
 ```
 ---
 - name: Create Subnets
@@ -38,15 +54,12 @@ Including an example of how to use your role (for instance, with variables passe
   vars_files:
     - vars/vars.yml
   roles:
-    - aws-subnets
+    - aws-subnet
 ```
-
-And `vars/vars.yml` contains
-
+Create a `vars/vars.yml` with the content similar to:
 ```
 vpc_name: maish_test
 region: us-east-2
-vpc_id: vpc-077c143fcf318b68c
 subnets:
   - subnet_name: "{{ vpc_name | default (omit) }}-Public-{{ region }}a"
     subnet_cidr: 192.168.100.0/26

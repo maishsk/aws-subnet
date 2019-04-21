@@ -1,7 +1,5 @@
 ---
 - include: create.yml
-  when:
-    - create is defined
+  tags: create
 - include: rollback.yml
-  when:
-    - rollback is defined
+  tags: rollback
